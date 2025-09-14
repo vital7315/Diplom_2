@@ -13,7 +13,6 @@ release.properties
 
 # Allure
 .allure/
-allure-results/
 allure-report/
 
 # System
