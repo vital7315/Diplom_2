@@ -21,4 +21,3 @@ public class UserGenerator {
         return new User("test" + System.currentTimeMillis() + "@yandex.ru", "password", null);
     }
 }
-

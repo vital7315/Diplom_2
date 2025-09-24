@@ -2,25 +2,35 @@ package api;
 
 import io.qameta.allure.*;
 import model.User;
+import org.junit.After;
 import org.junit.Test;
 import utils.UserGenerator;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @Epic("Stellar Burgers API")
 @Feature("Логин пользователя")
-@Owner("ТвоёИмя")
+@Owner("Имя")
 public class UserLoginTest extends BaseApiTest {
+    private UserClient userClient = new UserClient();
+    private String accessToken;
+    private User user;
+
+    @After
+    public void tearDown() {
+        if (accessToken != null) {
+            userClient.delete(accessToken);
+        }
+    }
+
     @Test
     @Story("Вход с валидными данными")
     @Description("Пользователь может войти, если указал правильный email и пароль")
     public void loginWithValidCredentialsShouldBeSuccessful() {
-        User user = UserGenerator.getRandomUser();
-        given().header("Content-type", "application/json").body(user).post("/api/auth/register");
+        user = UserGenerator.getRandomUser();
+        userClient.create(user);
 
-        String json = String.format("{\"email\": \"%s\", \"password\": \"%s\"}", user.email, user.password);
-        given().header("Content-type", "application/json").body(json).post("/api/auth/login")
+        userClient.login(user)
                 .then().statusCode(200)
                 .body("success", is(true));
     }
@@ -29,8 +39,9 @@ public class UserLoginTest extends BaseApiTest {
     @Story("Вход с невалидными данными")
     @Description("Пользователь не может войти с неправильным паролем")
     public void loginWithInvalidCredentialsShouldFail() {
-        String json = "{\"email\": \"fake@mail.ru\", \"password\": \"wrongpassword\"}";
-        given().header("Content-type", "application/json").body(json).post("/api/auth/login")
+        User invalidUser = new User("fake@mail.ru", "wrongpassword", "TestUser");
+
+        userClient.login(invalidUser)
                 .then().statusCode(401)
                 .body("success", is(false));
     }

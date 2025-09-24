@@ -3,38 +3,42 @@ package api;
 import io.qameta.allure.*;
 import model.User;
 import model.Order;
+import org.junit.After;
 import org.junit.Test;
 import utils.OrderGenerator;
 import utils.UserGenerator;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @Epic("Stellar Burgers API")
 @Feature("Создание заказов")
-@Owner("ТвоёИмя")
+@Owner("Имя")
 public class OrderCreateTest extends BaseApiTest {
+    private OrderClient orderClient = new OrderClient();
+    private UserClient userClient = new UserClient();
+    private String accessToken;
+    private User user;
+
+    @After
+    public void tearDown() {
+        if (accessToken != null) {
+            userClient.delete(accessToken);
+        }
+    }
 
     @Test
     @Story("Создание заказа с авторизацией")
     @Description("Пользователь с accessToken может создать заказ")
     public void createOrderWithAuthShouldBeSuccessful() {
-        User user = UserGenerator.getRandomUser();
-        String accessToken = given()
-                .header("Content-type", "application/json")
-                .body(user)
-                .post("/api/auth/register")
+        user = UserGenerator.getRandomUser();
+        accessToken = userClient.create(user)
                 .then()
                 .extract()
                 .path("accessToken");
 
         Order order = OrderGenerator.getValidOrder();
 
-        given()
-                .header("Content-type", "application/json")
-                .header("Authorization", accessToken)
-                .body(order)
-                .post("/api/orders")
+        orderClient.create(order, accessToken)
                 .then()
                 .statusCode(200)
                 .body("success", is(true));
@@ -45,10 +49,7 @@ public class OrderCreateTest extends BaseApiTest {
     @Description("Пользователь без accessToken тоже может создать заказ")
     public void createOrderWithoutAuthShouldBeSuccessful() {
         Order order = OrderGenerator.getValidOrder();
-        given()
-                .header("Content-type", "application/json")
-                .body(order)
-                .post("/api/orders")
+        orderClient.create(order, null)
                 .then()
                 .statusCode(200)
                 .body("success", is(true));
@@ -58,10 +59,7 @@ public class OrderCreateTest extends BaseApiTest {
     @Story("Создание заказа без ингредиентов")
     @Description("Проверка ошибки при попытке создать заказ без ингредиентов")
     public void createOrderWithoutIngredientsShouldFail() {
-        given()
-                .header("Content-type", "application/json")
-                .body(OrderGenerator.getOrderWithoutIngredients())
-                .post("/api/orders")
+        orderClient.create(OrderGenerator.getOrderWithoutIngredients(), null)
                 .then()
                 .statusCode(400)
                 .body("success", is(false))
@@ -72,10 +70,7 @@ public class OrderCreateTest extends BaseApiTest {
     @Story("Создание заказа с невалидным ингредиентом")
     @Description("Проверка 500 ошибки при несуществующем ингредиенте")
     public void createOrderWithInvalidIngredientShouldFail() {
-        given()
-                .header("Content-type", "application/json")
-                .body(OrderGenerator.getOrderWithInvalidIngredient())
-                .post("/api/orders")
+        orderClient.create(OrderGenerator.getOrderWithInvalidIngredient(), null)
                 .then()
                 .statusCode(500);
     }

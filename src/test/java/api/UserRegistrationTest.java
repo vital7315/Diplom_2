@@ -2,38 +2,48 @@ package api;
 
 import io.qameta.allure.*;
 import model.User;
+import org.junit.After;
 import org.junit.Test;
 import utils.UserGenerator;
 
-import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @Epic("Stellar Burgers API")
 @Feature("Регистрация пользователя")
-@Owner("ТвоёИмя")
+@Owner("Имя")
 public class UserRegistrationTest extends BaseApiTest {
+    private UserClient userClient = new UserClient();
+    private String accessToken;
+    private User user;
+
+    @After
+    public void tearDown() {
+        if (accessToken != null) {
+            userClient.delete(accessToken);
+        }
+    }
 
     @Test
     @Story("Валидная регистрация")
     @Description("Пользователь может зарегистрироваться с валидными данными")
     public void registrationWithValidDataShouldBeSuccessful() {
-        User user = UserGenerator.getRandomUser();
-        given()
-                .header("Content-type", "application/json")
-                .body(user)
-                .post("/api/auth/register")
+        user = UserGenerator.getRandomUser();
+        accessToken = userClient.create(user)
                 .then()
                 .statusCode(200)
-                .body("success", is(true));
+                .body("success", is(true))
+                .extract()
+                .path("accessToken");
     }
 
     @Test
     @Story("Регистрация уже существующего пользователя")
     @Description("Ошибка, если пользователь уже существует")
     public void registrationWithAlreadyRegisteredUserShouldFail() {
-        User user = UserGenerator.getRandomUser();
-        given().header("Content-type", "application/json").body(user).post("/api/auth/register");
-        given().header("Content-type", "application/json").body(user).post("/api/auth/register")
+        user = UserGenerator.getRandomUser();
+        userClient.create(user);
+
+        userClient.create(user)
                 .then().statusCode(403)
                 .body("success", is(false))
                 .body("message", containsString("User already exists"));
@@ -44,7 +54,7 @@ public class UserRegistrationTest extends BaseApiTest {
     @Description("Ошибка, если не передан email")
     public void registrationWithoutEmailShouldFail() {
         User user = UserGenerator.getUserWithoutEmail();
-        given().header("Content-type", "application/json").body(user).post("/api/auth/register")
+        userClient.create(user)
                 .then().statusCode(403)
                 .body("success", is(false));
     }

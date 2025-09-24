@@ -7,7 +7,7 @@ import java.util.List;
 public class IngredientHelper {
     public static List<String> getFirstIngredients(int count) {
         Response response = RestAssured
-                .get("/api/ingredients")
+                .get("https://stellarburgers.nomoreparties.site/api/ingredients")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -16,4 +16,3 @@ public class IngredientHelper {
         return ingredients.subList(0, Math.min(count, ingredients.size()));
     }
 }
-
