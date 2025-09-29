@@ -16,19 +16,16 @@ public class UserLoginTest extends BaseApiTest {
     private String accessToken;
     private User user;
 
-    @After
-    public void tearDown() {
-        if (accessToken != null) {
-            userClient.delete(accessToken);
-        }
-    }
 
     @Test
     @Story("Вход с валидными данными")
     @Description("Пользователь может войти, если указал правильный email и пароль")
     public void loginWithValidCredentialsShouldBeSuccessful() {
         user = UserGenerator.getRandomUser();
-        userClient.create(user);
+        accessToken = userClient.create(user)
+                .then()
+                .extract()
+                .path("accessToken");
 
         userClient.login(user)
                 .then().statusCode(200)
@@ -44,5 +41,15 @@ public class UserLoginTest extends BaseApiTest {
         userClient.login(invalidUser)
                 .then().statusCode(401)
                 .body("success", is(false));
+    }
+    @After
+    public void tearDown() {
+        try {
+            if (accessToken != null) {
+                userClient.delete(accessToken);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to delete user: " + e.getMessage());
+        }
     }
 }

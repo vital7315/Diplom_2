@@ -16,12 +16,6 @@ public class UserRegistrationTest extends BaseApiTest {
     private String accessToken;
     private User user;
 
-    @After
-    public void tearDown() {
-        if (accessToken != null) {
-            userClient.delete(accessToken);
-        }
-    }
 
     @Test
     @Story("Валидная регистрация")
@@ -41,7 +35,10 @@ public class UserRegistrationTest extends BaseApiTest {
     @Description("Ошибка, если пользователь уже существует")
     public void registrationWithAlreadyRegisteredUserShouldFail() {
         user = UserGenerator.getRandomUser();
-        userClient.create(user);
+        accessToken = userClient.create(user)
+                .then()
+                .extract()
+                .path("accessToken");
 
         userClient.create(user)
                 .then().statusCode(403)
@@ -57,5 +54,15 @@ public class UserRegistrationTest extends BaseApiTest {
         userClient.create(user)
                 .then().statusCode(403)
                 .body("success", is(false));
+    }
+    @After
+    public void tearDown() {
+        try {
+            if (accessToken != null) {
+                userClient.delete(accessToken);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to delete user: " + e.getMessage());
+        }
     }
 }

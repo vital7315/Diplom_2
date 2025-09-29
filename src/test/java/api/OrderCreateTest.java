@@ -19,12 +19,6 @@ public class OrderCreateTest extends BaseApiTest {
     private String accessToken;
     private User user;
 
-    @After
-    public void tearDown() {
-        if (accessToken != null) {
-            userClient.delete(accessToken);
-        }
-    }
 
     @Test
     @Story("Создание заказа с авторизацией")
@@ -73,5 +67,15 @@ public class OrderCreateTest extends BaseApiTest {
         orderClient.create(OrderGenerator.getOrderWithInvalidIngredient(), null)
                 .then()
                 .statusCode(500);
+    }
+    @After
+    public void tearDown() {
+        try {
+            if (accessToken != null) {
+                userClient.delete(accessToken);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to delete user: " + e.getMessage());
+        }
     }
 }

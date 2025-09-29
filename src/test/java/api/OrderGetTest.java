@@ -19,12 +19,6 @@ public class OrderGetTest extends BaseApiTest {
     private String accessToken;
     private User user;
 
-    @After
-    public void tearDown() {
-        if (accessToken != null) {
-            userClient.delete(accessToken);
-        }
-    }
 
     @Test
     @Story("Получение заказов с авторизацией")
@@ -58,5 +52,15 @@ public class OrderGetTest extends BaseApiTest {
                 .statusCode(401)
                 .body("success", is(false))
                 .body("message", containsString("You should be authorised"));
+    }
+    @After
+    public void tearDown() {
+        try {
+            if (accessToken != null) {
+                userClient.delete(accessToken);
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to delete user: " + e.getMessage());
+        }
     }
 }
