@@ -19,7 +19,7 @@ public class UserUpdateTest extends BaseApiTest {
 
     @Test
     @Story("Обновление данных с авторизацией")
-    @Description("Пользователь может обновить email/имя при наличии accessToken")
+    @Description("Авторизованный пользователь может обновить email/имя")
     public void updateUserDataWithAuthShouldBeSuccessful() {
         user = UserGenerator.getRandomUser();
         accessToken = userClient.create(user)
@@ -39,7 +39,7 @@ public class UserUpdateTest extends BaseApiTest {
 
     @Test
     @Story("Обновление данных без авторизации")
-    @Description("Ошибка, если accessToken не передан")
+    @Description("Ошибка, если пользователь не авторизован")
     public void updateUserDataWithoutAuthShouldFail() {
         User updatedUser = new User("test" + System.currentTimeMillis() + "@yandex.ru", "password", "UpdatedName");
 
@@ -49,7 +49,9 @@ public class UserUpdateTest extends BaseApiTest {
                 .body("success", is(false))
                 .body("message", containsString("You should be authorised"));
     }
+
     @After
+    @Step("Удаление тестового пользователя")
     public void tearDown() {
         try {
             if (accessToken != null) {

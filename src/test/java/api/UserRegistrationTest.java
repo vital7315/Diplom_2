@@ -55,7 +55,9 @@ public class UserRegistrationTest extends BaseApiTest {
                 .then().statusCode(403)
                 .body("success", is(false));
     }
+
     @After
+    @Step("Удаление тестового пользователя")
     public void tearDown() {
         try {
             if (accessToken != null) {

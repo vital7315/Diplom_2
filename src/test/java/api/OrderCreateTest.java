@@ -22,7 +22,7 @@ public class OrderCreateTest extends BaseApiTest {
 
     @Test
     @Story("Создание заказа с авторизацией")
-    @Description("Пользователь с accessToken может создать заказ")
+    @Description("Пользователь с авторизацией может создать заказ")
     public void createOrderWithAuthShouldBeSuccessful() {
         user = UserGenerator.getRandomUser();
         accessToken = userClient.create(user)
@@ -40,7 +40,7 @@ public class OrderCreateTest extends BaseApiTest {
 
     @Test
     @Story("Создание заказа без авторизации")
-    @Description("Пользователь без accessToken тоже может создать заказ")
+    @Description("Пользователь без авторизации тоже может создать заказ")
     public void createOrderWithoutAuthShouldBeSuccessful() {
         Order order = OrderGenerator.getValidOrder();
         orderClient.create(order, null)
@@ -68,7 +68,9 @@ public class OrderCreateTest extends BaseApiTest {
                 .then()
                 .statusCode(500);
     }
+
     @After
+    @Step("Удаление тестового пользователя")
     public void tearDown() {
         try {
             if (accessToken != null) {

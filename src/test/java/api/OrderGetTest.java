@@ -22,7 +22,7 @@ public class OrderGetTest extends BaseApiTest {
 
     @Test
     @Story("Получение заказов с авторизацией")
-    @Description("Пользователь с accessToken может получить список своих заказов")
+    @Description("Пользователь с авторизацией может получить список своих заказов")
     public void getOrdersWithAuthShouldBeSuccessful() {
         user = UserGenerator.getRandomUser();
         accessToken = userClient.create(user)
@@ -45,7 +45,7 @@ public class OrderGetTest extends BaseApiTest {
 
     @Test
     @Story("Получение заказов без авторизации")
-    @Description("Проверка ошибки при попытке получить заказы без accessToken")
+    @Description("Проверка ошибки при попытке получить заказы без авторизацией")
     public void getOrdersWithoutAuthShouldFail() {
         orderClient.getWithoutAuth()
                 .then()
@@ -53,7 +53,9 @@ public class OrderGetTest extends BaseApiTest {
                 .body("success", is(false))
                 .body("message", containsString("You should be authorised"));
     }
+
     @After
+    @Step("Удаление тестового пользователя")
     public void tearDown() {
         try {
             if (accessToken != null) {
